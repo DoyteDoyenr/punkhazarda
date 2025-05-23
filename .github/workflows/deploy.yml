@@ -22,14 +22,14 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: back-end-cogna
+          project_id: big-silo-423307-u7  # Atualizado aqui
           install_components: 'gke-gcloud-auth-plugin'
 
       - name: Authenticate with GKE
         run: |
           gcloud container clusters get-credentials autopilot-cluster-2 \
             --region us-central1 \
-            --project back-end-cogna
+            --project big-silo-423307-u7
 
       - name: Build and Push Docker image
         run: |
