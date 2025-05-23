@@ -27,7 +27,9 @@ jobs:
 
       - name: Authenticate with GKE
         run: |
-          gcloud container clusters get-credentials your-cluster-name --region your-region --project back-end-cogna
+          gcloud container clusters get-credentials autopilot-cluster-1 \
+            --region us-central1 \
+            --project back-end-cogna
 
       - name: Build and Push Docker image
         run: |
