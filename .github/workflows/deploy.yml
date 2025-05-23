@@ -22,7 +22,7 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: big-silo-423307-u7  # Atualizado aqui
+          project_id: big-silo-423307-u7
           install_components: 'gke-gcloud-auth-plugin'
 
       - name: Authenticate with GKE
@@ -31,15 +31,31 @@ jobs:
             --region us-central1 \
             --project big-silo-423307-u7
 
+      # Step to apply database manifests
+      - name: Apply Database Manifests
+        run: |
+          kubectl apply -f k8s/postgres-deployment.yaml
+          kubectl apply -f k8s/postgres-service.yaml
+          # Add any other database-related manifests here
+
+      # Step to wait for the database to be ready
+      - name: Wait for Database
+        run: |
+          kubectl wait --for=condition=ready pod -l app=postgres --timeout=300s
+
+      # Step to build and push Docker image
       - name: Build and Push Docker image
         run: |
           docker build -t gcr.io/back-end-cogna/back-cogna:latest .
           docker push gcr.io/back-end-cogna/back-cogna:latest
 
+      # Step to replace image in manifest
       - name: Replace image in manifest
         run: |
           sed -i "s|image: back-cogna:local|image: gcr.io/back-end-cogna/back-cogna:latest|g" k8s/back-cogna-deployment.yaml
 
-      - name: Apply Kubernetes manifests
+      # Step to apply application manifests
+      - name: Apply Application Manifests
         run: |
-          kubectl apply -f k8s/
+          kubectl apply -f k8s/back-cogna-deployment.yaml
+          kubectl apply -f k8s/back-cogna-service.yaml
