@@ -14,25 +14,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: your-gcp-project-id
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
+          project_id: back-end-cogna
+          install_components: 'gke-gcloud-auth-plugin'
 
       - name: Authenticate with GKE
         run: |
-          gcloud container clusters get-credentials your-cluster-name --region your-region
+          gcloud container clusters get-credentials your-cluster-name --region your-region --project back-end-cogna
 
       - name: Build and Push Docker image
         run: |
-          docker build -t gcr.io/your-gcp-project-id/back-cogna:latest .
-          docker push gcr.io/your-gcp-project-id/back-cogna:latest
+          docker build -t gcr.io/back-end-cogna/back-cogna:latest .
+          docker push gcr.io/back-end-cogna/back-cogna:latest
 
       - name: Replace image in manifest
         run: |
-          sed -i "s|image: back-cogna:local|image: gcr.io/your-gcp-project-id/back-cogna:latest|g" k8s/back-cogna-deployment.yaml
+          sed -i "s|image: back-cogna:local|image: gcr.io/back-end-cogna/back-cogna:latest|g" k8s/back-cogna-deployment.yaml
 
       - name: Apply Kubernetes manifests
         run: |
