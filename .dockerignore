@@ -1,0 +1,32 @@
+node_modules
+npm-debug.log
+
+# Docker Files
+Dockerfile
+.dockerignore
+
+# Git Files
+.git
+.gitignore
+
+# Environment and Build Files
+.env
+dist
+
+# Log and Build Info Files
+*.log
+*.tsbuildinfo
+
+# Coverage
+coverage
+
+# Package Files
+*.tgz
+
+# Environment Local Files
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+
+*.env.example

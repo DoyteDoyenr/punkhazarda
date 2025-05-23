@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: bitnami/postgresql:latest
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=main_database
+    volumes:
+      - postgres_data:/bitnami/postgresql
+
+  postgres_test:
+    image: bitnami/postgresql:latest
+    restart: always
+    container_name: integration-tests-prisma
+    ports:
+      - '5433:5432'
+    environment:
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+      - POSTGRES_DB=test_database
+
+volumes:
+  postgres_data:

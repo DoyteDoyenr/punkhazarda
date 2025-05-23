@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: back-cogna
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: back-cogna
+  template:
+    metadata:
+      labels:
+        app: back-cogna
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z postgres 5432; do
+                echo "Waiting for postgres...";
+                sleep 2;
+              done;
+              echo "Postgres is up!"
+      containers:
+        - name: back-cogna
+          image: back-cogna:local
+          ports:
+            - containerPort: 3333
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3333"
+            - name: JWT_SECRET
+              value: "asdasdasd"
+            - name: DATABASE_URL
+              value: "postgresql://docker:docker@postgres:5432/main_database"
