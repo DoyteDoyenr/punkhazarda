@@ -27,7 +27,7 @@ jobs:
 
       - name: Authenticate with GKE
         run: |
-          gcloud container clusters get-credentials autopilot-cluster-1 \
+          gcloud container clusters get-credentials autopilot-cluster-2 \
             --region us-central1 \
             --project back-end-cogna
 
