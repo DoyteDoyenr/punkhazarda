@@ -40,16 +40,7 @@ Desenvolver uma aplicação back-end utilizando Node.js com Express e TypeScript
    JWT_SECRET="seu_segredo"
    DATABASE_URL="postgresql://docker:docker@localhost:5432/main_database"
    ```
-
-   Ou, se estiver configurando para testes, crie um arquivo `.env.test` com as seguintes variáveis:
-   ```
-   # Exemplo de .env.test
-   NODE_ENV="test"
-   PORT="3333"
-   JWT_SECRET="asdasdasd"
-   DATABASE_URL="postgresql://prisma:prisma@localhost:5433/test_database"
-   ```
-
+   
 4. Inicie os serviços com Docker Compose:
    ```bash
    docker-compose -f docker-compose-node.yaml up -d
