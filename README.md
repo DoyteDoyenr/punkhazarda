@@ -45,7 +45,7 @@ Desenvolver uma aplicação back-end utilizando Node.js com Express e TypeScript
    ```
    # Exemplo de .env.test
    NODE_ENV="test"
-   PORT="4444"
+   PORT="3333"
    JWT_SECRET="asdasdasd"
    DATABASE_URL="postgresql://prisma:prisma@localhost:5433/test_database"
    ```
@@ -55,7 +55,12 @@ Desenvolver uma aplicação back-end utilizando Node.js com Express e TypeScript
    docker-compose -f docker-compose-node.yaml up -d
    ```
 
-5. Inicie a aplicação:
+5. Construa a aplicação:
+   ```bash
+   pnpm build
+   ```
+
+6. Inicie a aplicação:
    ```bash
    pnpm start
    ```
