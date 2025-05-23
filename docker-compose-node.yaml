@@ -21,5 +21,18 @@ services:
       - POSTGRES_PASSWORD=prisma
       - POSTGRES_DB=test_database
 
+  back_cogna:
+    image: back-cogna:local
+    ports:
+      - '3333:3333' 
+    environment:
+      - NODE_ENV=production
+      - PORT=3333
+      - JWT_SECRET=asdasdasd
+      - DATABASE_URL=postgresql://docker:docker@postgres:5432/main_database
+    depends_on:
+      - postgres
+    restart: on-failure
+    
 volumes:
   postgres_data:
