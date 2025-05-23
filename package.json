@@ -11,9 +11,9 @@
     "start": "node dist/server.js",
     "lint": "eslint .",
     "test:watch": "jest --watch --testPathPattern=src/use-cases",
-    "test:e2e": "dotenv -e .env.test -- sh -c 'NODE_ENV=test TEST_E2E=true jest'",
-    "test:e2e:watch": "dotenv -e .env.test -- sh -c 'NODE_ENV=test TEST_E2E=true jest --watch'",
-    "seed": "tsx prisma/prisma-seed.ts"
+    "test:e2e": "prisma generate && dotenv -e .env.test -- sh -c 'NODE_ENV=test TEST_E2E=true jest'",
+    "test:e2e:watch": "prisma generate && dotenv -e .env.test -- sh -c 'NODE_ENV=test TEST_E2E=true jest --watch'",
+    "seed": "prisma generate && tsx prisma/prisma-seed.ts"
   },
   "keywords": [],
   "author": "",
