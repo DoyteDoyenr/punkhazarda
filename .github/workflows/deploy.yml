@@ -23,6 +23,20 @@ jobs:
         with:
           install_components: gke-gcloud-auth-plugin
 
+      - name: Configure Docker para usar gcloud como helper
+        run: |
+          gcloud auth configure-docker
+
+      - name: Build e Push da imagem Docker
+        run: |
+          # Build da imagem com tag baseada no commit SHA
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:${{ github.sha }} .
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:latest .
+          
+          # Push das imagens para o GCR
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:${{ github.sha }}
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:latest
+
       - name: Get cluster credentials
         run: |
           gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
@@ -33,6 +47,8 @@ jobs:
           kubectl apply -f k8s/postgres-deployment.yaml
           kubectl rollout status deployment/postgres
           
+          # Atualizar a imagem no deployment
+          kubectl set image deployment/back-cogna back-cogna=gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:${{ github.sha }}
           kubectl apply -f k8s/back-cogna-deployment.yaml
           kubectl rollout status deployment/back-cogna
 
