@@ -3,59 +3,63 @@ name: Deploy to GKE
 on:
   push:
     branches:
-      - master
+      - main
+
+env:
+  PROJECT_ID: ${{ secrets.PROJECT_ID }}
+  REGION: ${{ secrets.REGION }}
+  CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+  REPO_NAME: ${{ secrets.REPO_NAME }}
+  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
 
 jobs:
   deploy:
-    name: Deploy app to GKE
+    name: Deploy Express API and DB to GKE
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Authenticate to Google Cloud
+      - name: Authenticate with GCP
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v1
         with:
-          project_id: big-silo-423307-u7
-          install_components: 'gke-gcloud-auth-plugin'
+          project_id: ${{ env.PROJECT_ID }}
 
-      - name: Authenticate with GKE
+      - name: Configure Docker for Artifact Registry
         run: |
-          gcloud container clusters get-credentials autopilot-cluster-2 \
-            --region us-central1 \
-            --project big-silo-423307-u7
+          gcloud auth configure-docker $REGION-docker.pkg.dev
 
-      # Step to apply database manifests
-      - name: Apply Database Manifests
-        run: |
-          kubectl apply -f k8s/postgres-deployment.yaml
-          kubectl apply -f k8s/postgres-service.yaml
-          # Add any other database-related manifests here
-
-      # Step to wait for the database to be ready
-      - name: Wait for Database
-        run: |
-          kubectl wait --for=condition=ready pod -l app=postgres --timeout=300s
-
-      # Step to build and push Docker image
       - name: Build and Push Docker image
         run: |
-          docker build -t gcr.io/back-end-cogna/back-cogna:latest .
-          docker push gcr.io/back-end-cogna/back-cogna:latest
+          docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:${{ github.sha }} .
+          docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:${{ github.sha }}
 
-      # Step to replace image in manifest
-      - name: Replace image in manifest
+      - name: Get GKE credentials
         run: |
-          sed -i "s|image: back-cogna:local|image: gcr.io/back-end-cogna/back-cogna:latest|g" k8s/back-cogna-deployment.yaml
+          gcloud container clusters get-credentials $CLUSTER_NAME --region $REGION
 
-      # Step to apply application manifests
-      - name: Apply Application Manifests
+      - name: Replace image reference in deployment
         run: |
-          kubectl apply -f k8s/back-cogna-deployment.yaml
+          sed -i "s|back-cogna:local|$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:${{ github.sha }}|g" k8s/*.yaml
+
+      - name: Apply PostgreSQL and PVC first
+        run: |
+          kubectl apply -f k8s/postgres-pvc.yaml
+          kubectl apply -f k8s/postgres.yaml
+          kubectl apply -f k8s/postgres-service.yaml
+          kubectl apply -f k8s/postgres-test.yaml
+          kubectl apply -f k8s/postgres-test-service.yaml
+
+      - name: Wait for DBs to be ready
+        run: sleep 30
+
+      - name: Apply Backend Deployment and Service
+        run: |
+          kubectl apply -f k8s/back-cogna.yaml
           kubectl apply -f k8s/back-cogna-service.yaml
