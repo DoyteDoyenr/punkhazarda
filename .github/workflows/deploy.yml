@@ -2,14 +2,14 @@ name: Deploy to GKE
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GKE_CLUSTER: autopilot-cluster-1
-  GKE_ZONE: us-central1
+  GKE_CLUSTER: your-cluster-name    # Substitua pelo nome do seu cluster
+  GKE_ZONE: us-central1-a           # Substitua pela zona do seu cluster
   DEPLOYMENT_NAME: back-cogna
   IMAGE: back-cogna
 
@@ -38,10 +38,10 @@ jobs:
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v1'
 
-    # Configurar Docker para usar gcloud como credential helper
+    # Configurar Docker para usar gcloud como credential helper (Artifact Registry)
     - name: 'Configure Docker to use gcloud as a credential helper'
       run: |
-        gcloud --quiet auth configure-docker
+        gcloud --quiet auth configure-docker us-central1-docker.pkg.dev
 
     # Get GKE credentials
     - name: 'Get GKE credentials'
@@ -52,14 +52,14 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t "$IMAGE:$GITHUB_SHA" .
-        docker tag "$IMAGE:$GITHUB_SHA" "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
-        docker tag "$IMAGE:$GITHUB_SHA" "gcr.io/$PROJECT_ID/$IMAGE:latest"
+        docker tag "$IMAGE:$GITHUB_SHA" "us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/$IMAGE:$GITHUB_SHA"
+        docker tag "$IMAGE:$GITHUB_SHA" "us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/$IMAGE:latest"
 
-    # Push da imagem para Google Container Registry
+    # Push da imagem para Artifact Registry
     - name: Publish Docker image
       run: |
-        docker push "gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
-        docker push "gcr.io/$PROJECT_ID/$IMAGE:latest"
+        docker push "us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/$IMAGE:$GITHUB_SHA"
+        docker push "us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/$IMAGE:latest"
 
     # Deploy do PostgreSQL (PVC + Deployment + Service)
     - name: Deploy PostgreSQL PVC
@@ -165,7 +165,7 @@ jobs:
                       echo "Postgres is up!"
               containers:
                 - name: back-cogna
-                  image: gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+                  image: us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/$IMAGE:$GITHUB_SHA
                   ports:
                     - containerPort: 3333
                   env:
