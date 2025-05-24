@@ -42,7 +42,6 @@ spec:
   selector:
     app: back-cogna
   ports:
-    - port: 3333
+    - port: 80
       targetPort: 3333
-      nodePort: 31333 
-  type: NodePort
+  type: LoadBalancer
