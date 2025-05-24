@@ -12,18 +12,6 @@ spec:
       labels:
         app: back-cogna
     spec:
-      initContainers:
-        - name: wait-for-postgres
-          image: alpine:3.18
-          command:
-            - sh
-            - -c
-            - |
-              until nc -z postgres 5432; do
-                echo "Waiting for postgres...";
-                sleep 2;
-              done;
-              echo "Postgres is up!"
       containers:
         - name: back-cogna
           image: gcr.io/cogna-test-460801/back-cogna:latest
