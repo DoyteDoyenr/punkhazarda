@@ -8,8 +8,8 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GKE_CLUSTER: your-cluster-name    # Substitua pelo nome do seu cluster
-  GKE_ZONE: us-central1-a           # Substitua pela zona do seu cluster
+  GKE_CLUSTER: autopilot-cluster-1
+  GKE_ZONE: us-central1
   DEPLOYMENT_NAME: back-cogna
   IMAGE: back-cogna
 
