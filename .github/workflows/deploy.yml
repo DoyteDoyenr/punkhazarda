@@ -1,4 +1,4 @@
-name: CI/CD - Deploy + Testes
+name: Deploy Postgres to GKE
 
 on:
   push:
@@ -6,14 +6,14 @@ on:
       - master
 
 jobs:
-  deploy-and-test:
+  deploy-postgres:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Autenticar no GCP
+      - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
@@ -21,49 +21,16 @@ jobs:
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
         with:
-          install_components: gke-gcloud-auth-plugin
+          install_components: 'gke-gcloud-auth-plugin'
 
-      - name: Configure Docker para usar gcloud como helper
-        run: |
-          gcloud auth configure-docker
-
-      - name: Build e Push da imagem Docker
-        run: |
-          # Build da imagem com tag baseada no commit SHA
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:${{ github.sha }} .
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:latest .
-          
-          # Push das imagens para o GCR
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:${{ github.sha }}
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:latest
-
-      - name: Get cluster credentials
+      - name: Configure gcloud & get cluster credentials
         run: |
           gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
           gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} --zone ${{ secrets.GKE_ZONE }}
 
-      - name: Deploy banco principal e backend
+      - name: Apply Postgres deployment
         run: |
           kubectl apply -f k8s/postgres-deployment.yaml
-          kubectl rollout status deployment/postgres
-          
-          # Atualizar a imagem no deployment
-          kubectl set image deployment/back-cogna back-cogna=gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:${{ github.sha }}
-          kubectl apply -f k8s/back-cogna-deployment.yaml
-          kubectl rollout status deployment/back-cogna
-
-      - name: Deploy banco de testes
-        run: |
           kubectl apply -f k8s/postgres-test-deployment.yaml
+          kubectl rollout status deployment/postgres
           kubectl rollout status deployment/postgres-test
-
-      - name: Deploy Job de testes
-        run: |
-          kubectl apply -f k8s/test-job.yaml
-          kubectl wait --for=condition=complete job/run-tests --timeout=300s
-
-      - name: Remover banco de testes (somente se testes passarem)
-        if: success()
-        run: |
-          kubectl delete -f k8s/postgres-test-deployment.yaml
-          kubectl delete job run-tests
