@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: postgres-test
-          image: bitnami/postgresql:latest
+          image: postgres:latest
           ports:
             - containerPort: 5432
           env:
@@ -24,3 +24,15 @@ spec:
               value: "prisma"
             - name: POSTGRES_DB
               value: "test_database"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-test
+spec:
+  selector:
+    app: postgres-test
+  ports:
+    - port: 5432
+      targetPort: 5432

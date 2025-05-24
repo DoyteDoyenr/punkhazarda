@@ -38,3 +38,17 @@ spec:
               value: "asdasdasd"
             - name: DATABASE_URL
               value: "postgresql://docker:docker@postgres:5432/main_database"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: back-cogna
+spec:
+  selector:
+    app: back-cogna
+  ports:
+    - port: 3333
+      targetPort: 3333
+      nodePort: 31333 
+  type: NodePort

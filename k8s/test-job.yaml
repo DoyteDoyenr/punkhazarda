@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: run-tests
+spec:
+  template:
+    spec:
+      containers:
+        - name: test-runner
+          image: node:20
+          command: ["sh", "-c", "npm ci && npm run test:e2e && npm run test"]
+          env:
+            - name: DATABASE_URL
+              value: postgresql://prisma:prisma@postgres-test:5432/test_database
+      restartPolicy: Never
