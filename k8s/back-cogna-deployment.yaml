@@ -26,7 +26,7 @@ spec:
               echo "Postgres is up!"
       containers:
         - name: back-cogna
-          image: gcr.io/placeholder/back-cogna:latest  # <- será sobrescrita via `kubectl set image`
+          image: gcr.io/cogna-test-460801/back-cogna:latest
           ports:
             - containerPort: 3333
           env:
