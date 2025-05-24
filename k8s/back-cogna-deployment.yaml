@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: back-cogna
-          image: gcr.io/cogna-test-460801/back-cogna:latest
+          image: gcr.io/cogna-test-460801/cogna-testmaximos:latest
           ports:
             - containerPort: 3333
           env:
