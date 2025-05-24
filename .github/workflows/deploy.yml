@@ -27,23 +27,28 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    # Configuração de autenticação no GCP
+    # Autenticação com GCP
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-    # Configurar Cloud SDK
+    # Setup do gcloud CLI
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v1'
 
-    # Configurar Docker para usar gcloud como credential helper (Artifact Registry)
+    # Instalar plugin de autenticação do GKE
+    - name: Install gke-gcloud-auth-plugin
+      run: |
+        gcloud components install gke-gcloud-auth-plugin --quiet
+
+    # Configurar Docker para o Artifact Registry
     - name: 'Configure Docker to use gcloud as a credential helper'
       run: |
         gcloud --quiet auth configure-docker us-central1-docker.pkg.dev
 
-    # Get GKE credentials
+    # Obter credenciais do cluster GKE
     - name: 'Get GKE credentials'
       run: |
         gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
@@ -55,13 +60,13 @@ jobs:
         docker tag "$IMAGE:$GITHUB_SHA" "us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/$IMAGE:$GITHUB_SHA"
         docker tag "$IMAGE:$GITHUB_SHA" "us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/$IMAGE:latest"
 
-    # Push da imagem para Artifact Registry
+    # Publicar imagem no Artifact Registry
     - name: Publish Docker image
       run: |
         docker push "us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/$IMAGE:$GITHUB_SHA"
         docker push "us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/$IMAGE:latest"
 
-    # Deploy do PostgreSQL (PVC + Deployment + Service)
+    # Deploy do PVC do PostgreSQL
     - name: Deploy PostgreSQL PVC
       run: |
         cat <<EOF | kubectl apply -f -
@@ -77,6 +82,7 @@ jobs:
               storage: 1Gi
         EOF
 
+    # Deploy do PostgreSQL (Deployment + Service)
     - name: Deploy PostgreSQL
       run: |
         cat <<EOF | kubectl apply -f -
@@ -133,7 +139,7 @@ jobs:
         kubectl wait --for=condition=available --timeout=300s deployment/postgres
         kubectl wait --for=condition=ready --timeout=300s pod -l app=postgres
 
-    # Deploy da aplicação backend
+    # Deploy da aplicação Backend
     - name: Deploy Backend Application
       run: |
         cat <<EOF | kubectl apply -f -
@@ -191,11 +197,11 @@ jobs:
           ports:
             - port: 3333
               targetPort: 3333
-              nodePort: 31333 
+              nodePort: 31333
           type: NodePort
         EOF
 
-    # Criar secrets do Kubernetes (se não existir)
+    # Criar secret no Kubernetes (JWT)
     - name: Create Kubernetes secrets
       run: |
         kubectl create secret generic app-secrets \
