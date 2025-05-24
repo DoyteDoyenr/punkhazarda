@@ -25,7 +25,7 @@ spec:
             - name: JWT_SECRET
               value: "asdasdasd"
             - name: DATABASE_URL
-              value: "postgresql://docker:docker@postgres:5432/main_database"
+              value: "postgresql://docker:docker@postgres.default.svc.cluster.local:5432/main_database"
           resources:
             requests:
               memory: "256Mi"
