@@ -26,7 +26,7 @@ spec:
               echo "Postgres is up!"
       containers:
         - name: back-cogna
-          image: back-cogna:local
+          image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:latest
           ports:
             - containerPort: 3333
           env:
@@ -38,7 +38,6 @@ spec:
               value: "asdasdasd"
             - name: DATABASE_URL
               value: "postgresql://docker:docker@postgres:5432/main_database"
-
 ---
 apiVersion: v1
 kind: Service
