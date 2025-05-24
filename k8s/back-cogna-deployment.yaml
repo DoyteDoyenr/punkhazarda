@@ -17,15 +17,11 @@ spec:
           image: gcr.io/cogna-test-460801/cogna-testmaximos:latest
           ports:
             - containerPort: 3333
-          env:
-            - name: NODE_ENV
-              value: "production"
-            - name: PORT
-              value: "3333"
-            - name: JWT_SECRET
-              value: "asdasdasd"
-            - name: DATABASE_URL
-              value: "postgresql://docker:docker@postgres.default.svc.cluster.local:5432/main_database"
+          envFrom:
+            - configMapRef:
+                name: back-cogna-config
+            - secretRef:
+                name: back-cogna-secret
           resources:
             requests:
               memory: "256Mi"
