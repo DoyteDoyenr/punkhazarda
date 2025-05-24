@@ -41,9 +41,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-lb
+  name: postgres
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: postgres
   ports:
