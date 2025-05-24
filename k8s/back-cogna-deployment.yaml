@@ -26,7 +26,7 @@ spec:
               echo "Postgres is up!"
       containers:
         - name: back-cogna
-          image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/back-cogna:latest
+          image: gcr.io/cogna-test-460801/back-cogna:latest
           ports:
             - containerPort: 3333
           env:
